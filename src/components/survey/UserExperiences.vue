@@ -8,7 +8,9 @@
         >
       </div>
       <p v-if="isLoading">Loading...</p>
-      <ul v-else>
+      <p v-else-if="!isLoading && error">{{ error }}</p>
+      <p v-else-if="!isLoading && (!results || results.length === 0)">No Stored Experiences found. Start adding some</p>
+      <ul v-else-if="!isLoading && results && results.length > 0">
         <survey-result
           v-for="result in results"
           :key="result.id"
@@ -30,12 +32,14 @@ export default {
   data() {
     return {
       results: [],
-      isLoading: false
+      isLoading: false,
+      error: null
     };
   },
   methods: {
     loadExperiences() {
       this.isLoading = true
+      this.error = null
       fetch(
         'https://survey-d70fa-default-rtdb.europe-west1.firebasedatabase.app/surveys.json'
       )
@@ -51,6 +55,10 @@ export default {
             results.push({id: id, name: data[id].name, rating: data[id].rating})
           }
           this.results = results
+        }).catch(err => {
+          console.log(err);
+          this.isLoading = false
+          this.error = 'Failed to fetch data. Please try again later.'
         });
     },
   },
